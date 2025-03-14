@@ -2,6 +2,8 @@ import pygame
 import numpy as np
 from math import *
 
+from target import Target
+
 
 class Main:
 
@@ -24,6 +26,8 @@ class Main:
         self.offset = 0
         self.offset_multiplicator = 1
         self.x_offset = 1
+        self.targets = [Target(True)]
+        self.game_points = 0
 
         self.points = self.create_three_d_matrix()
         self.projection = self.create_projection_matrix()
@@ -57,6 +61,7 @@ class Main:
 
             self.draw_field()
             self.draw_left_right_rects()
+            self.draw_targets()
             self.isometric()
 
             if zoom_out:
@@ -69,6 +74,7 @@ class Main:
                     self.offset -= 1
             if self.zoom == 50:
                 zoom_out = False
+                self.check_for_hit()
             if self.zoom == 350:
                 self.x_offset = self.offset_multiplicator
                 zoom_out = True
@@ -209,6 +215,29 @@ class Main:
                 self.input_rects_colors[1] = self.BLACK
                 self.input_rects_colors[2] = self.BLACK
                 self.input_rects_colors[3] = self.BLACK
+
+    def draw_targets(self):
+        for t in self.targets:
+            pygame.draw.circle(self.screen, self.WHITE, t.get_position(), 60)
+            pygame.draw.circle(self.screen, self.BLACK, t.get_position(), 55)
+            pygame.draw.circle(self.screen, self.WHITE, t.get_position(), 35)
+            pygame.draw.circle(self.screen, self.BLACK, t.get_position(), 30)
+
+    def add_target(self):
+        self.targets.append(Target(False))
+    
+    def check_for_hit(self):
+        i = 0
+        hit = False
+        for t in self.targets:
+            if (((self.middle_point[0] + (self.offset * self.x_offset)) - t.get_position()[0])**2 + (self.middle_point[1] - t.get_position()[1])**2) < 60**2:
+                self.targets.pop(i)
+                hit = True
+                self.game_points += 1
+                i -= 1
+            i += 1
+        if hit:
+            self.add_target()
 
               
 Main()
