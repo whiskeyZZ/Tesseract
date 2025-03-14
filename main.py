@@ -7,21 +7,26 @@ class Main:
 
     def __init__(self):
         pygame.init()
+        pygame.display.set_caption("Tesseract")
         self.screen = pygame.display.set_mode((1920, 1080))
         self.clock = pygame.time.Clock()
         self.running = True
-        self.dt = 0
         self.screen_width = self.screen.get_width()
         self.screen_height = self.screen.get_height()
         self.middle_point = (self.screen_width / 2, self.screen_height / 2)
         self.zoom = 350
         self.zoom_speed = 3
         self.RED = (255, 51, 51)
+        self.WHITE = (255, 255, 255)
+        self.BLACK= (0, 0, 0)
+        self.input_rects_colors = self.fill_input_colors() 
         self.angle = 0
+        self.offset = 0
+        self.offset_multiplicator = 1
+        self.x_offset = 1
 
         self.points = self.create_three_d_matrix()
         self.projection = self.create_projection_matrix()
-        self.angle = 0
         self.x_rotation, self.y_rotation, self.z_rotation = self.create_rotation()
         self.projected_points = [
             [n, n] for n in range(len(self.points))
@@ -40,20 +45,32 @@ class Main:
                 if event.type == pygame.QUIT:
                     self.running = False
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        self.set_offset_multiplicator(True)
+                    if event.key == pygame.K_LEFT:
+                        self.set_offset_multiplicator(False)
+
             self.x_rotation, self.y_rotation, self.z_rotation = self.create_rotation()
             self.angle += 0.01
             self.screen.fill("black")
 
             self.draw_field()
+            self.draw_left_right_rects()
             self.isometric()
 
             if zoom_out:
                 self.zoom -= self.zoom_speed
+                if self.x_offset != 1:
+                    self.offset += 1
             if not zoom_out:
                 self.zoom += self.zoom_speed
+                if self.x_offset != 1:
+                    self.offset -= 1
             if self.zoom == 50:
                 zoom_out = False
             if self.zoom == 350:
+                self.x_offset = self.offset_multiplicator
                 zoom_out = True
 
             pygame.display.flip()
@@ -117,7 +134,7 @@ class Main:
             rotated_two_d = np.dot(self.x_rotation, rotated_two_d)
 
             projected_two_d = np.dot(self.projection, rotated_two_d)
-            x = int(projected_two_d[0][0] * self.zoom) + self.middle_point[0]
+            x = int(projected_two_d[0][0] * self.zoom) + (self.middle_point[0] + (self.offset * self.x_offset))
             y = int(projected_two_d[1][0] * self.zoom) + self.middle_point[1]
             self.projected_points[i] = [x, y]
             i += 1
@@ -130,9 +147,68 @@ class Main:
     def connect_points(self, i, j, points):
         pygame.draw.line(
             self.screen, self.RED, (points[i][0], points[i][1]), (points[j][0], points[j][1]))
-
         
+    def draw_left_right_rects(self):
+        left = self.screen_width / 2 + 150
+        top = self.screen_height - 100
+        for c in self.input_rects_colors:
+            pygame.draw.rect(self.screen, c, (left, top, 100, 50))
+            left -= 150
+        
+        left = self.screen_width / 2 + 150
+        for i in range(4):
+            pygame.draw.rect(self.screen, self.WHITE, (left, top, 100, 50), 5)
+            left -= 150
 
+    def fill_input_colors(self):
+        c = [self.BLACK, self.BLACK, self.BLACK, self.BLACK]
+        return c
+    
+    def set_offset_multiplicator(self, right: bool):
+        if right:
+            if self.offset_multiplicator < 4:
+                if self.offset_multiplicator == -2:
+                    self.offset_multiplicator = 1
+                elif self.offset_multiplicator == 1:
+                    self.offset_multiplicator += 1
+                elif self.offset_multiplicator == 2 or self.offset_multiplicator == -4:
+                    self.offset_multiplicator += 2
+        else:
+            if self.offset_multiplicator > -4:
+                if self.offset_multiplicator == 1:
+                    self.offset_multiplicator = -2
+                elif self.offset_multiplicator == 2:
+                    self.offset_multiplicator -= 1
+                elif self.offset_multiplicator == -2 or self.offset_multiplicator == 4:
+                    self.offset_multiplicator -= 2
 
-                       
+        i = self.offset_multiplicator
+        match i:
+            case 4:
+                self.input_rects_colors[0] = self.WHITE
+                self.input_rects_colors[1] = self.WHITE
+                self.input_rects_colors[2] = self.BLACK
+                self.input_rects_colors[3] = self.BLACK
+            case 2:
+                self.input_rects_colors[0] = self.BLACK
+                self.input_rects_colors[1] = self.WHITE
+                self.input_rects_colors[2] = self.BLACK
+                self.input_rects_colors[3] = self.BLACK
+            case -4:
+                self.input_rects_colors[0] = self.BLACK
+                self.input_rects_colors[1] = self.BLACK
+                self.input_rects_colors[2] = self.WHITE
+                self.input_rects_colors[3] = self.WHITE
+            case -2:
+                self.input_rects_colors[0] = self.BLACK
+                self.input_rects_colors[1] = self.BLACK
+                self.input_rects_colors[2] = self.WHITE
+                self.input_rects_colors[3] = self.BLACK
+            case 1:
+                self.input_rects_colors[0] = self.BLACK
+                self.input_rects_colors[1] = self.BLACK
+                self.input_rects_colors[2] = self.BLACK
+                self.input_rects_colors[3] = self.BLACK
+
+              
 Main()
