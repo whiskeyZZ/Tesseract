@@ -28,6 +28,8 @@ class Main:
         self.x_offset = 1
         self.targets = [Target(True)]
         self.game_points = 0
+        self.font_points = pygame.font.SysFont("monospace", 50)
+        self.font_time = pygame.font.SysFont("monospace", 30)
 
         self.points = self.create_three_d_matrix()
         self.projection = self.create_projection_matrix()
@@ -55,6 +57,9 @@ class Main:
                     if event.key == pygame.K_LEFT:
                         self.set_offset_multiplicator(False)
 
+            for t in self.targets:
+                t.call_timer()
+
             self.x_rotation, self.y_rotation, self.z_rotation = self.create_rotation()
             self.angle += 0.01
             self.screen.fill("black")
@@ -62,6 +67,7 @@ class Main:
             self.draw_field()
             self.draw_left_right_rects()
             self.draw_targets()
+            self.draw_game_points()
             self.isometric()
 
             if zoom_out:
@@ -222,6 +228,8 @@ class Main:
             pygame.draw.circle(self.screen, self.BLACK, t.get_position(), 55)
             pygame.draw.circle(self.screen, self.WHITE, t.get_position(), 35)
             pygame.draw.circle(self.screen, self.BLACK, t.get_position(), 30)
+            label = self.font_points.render(str(t.get_timer())[:2], 1, (255, 255, 255))
+            self.screen.blit(label, np.subtract(t.get_position(), (15, 15)))
 
     def add_target(self):
         self.targets.append(Target(False))
@@ -239,5 +247,8 @@ class Main:
         if hit:
             self.add_target()
 
+    def draw_game_points(self):
+        label = self.font_points.render(str(self.game_points), 1, (255,255,255))
+        self.screen.blit(label, (self.screen_width / 2, 30))
               
 Main()

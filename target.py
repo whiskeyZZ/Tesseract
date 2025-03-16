@@ -1,21 +1,23 @@
-import pygame
 from random import randrange, choice
 
 class Target:
 
     def __init__(self, first: bool):
         self.position = (960, 540)
-        self.timer = self.set_timer()
         self.first = first
+        self.dead = False
+        self.timer_value = self.set_time()
+        self.counter = self.timer_value
         self.set_position()
 
-    def set_timer(self) -> int:
-        return randrange(5, 10, 1)
-    
-    def start_timer(self):
-        start_ticks = pygame.time.get_ticks()
-        while self.timer > 0:
-            self.timer = (pygame.time.get_ticks() - start_ticks)/100
+    def set_time(self) -> int:
+        return randrange(200, 500, 100)
+
+    def call_timer(self):
+        if not self.dead:
+            self.counter -= 1
+        if self.counter == 0:
+            self.dead = True 
 
     def set_position(self): 
         pos = [(960, 540), (760, 540), (1160, 540), (560, 540), (1360, 540)]
@@ -24,6 +26,9 @@ class Target:
 
     def get_position(self):
         return self.position
+    
+    def get_timer(self):
+        return self.counter
         
 
     
