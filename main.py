@@ -26,6 +26,10 @@ class Main:
         self.offset = 0
         self.offset_multiplicator = 1
         self.x_offset = 1
+        self.y_offset_set = 1
+        self.y_offset_multi = 1
+        self.y_offset = 0
+        self.y_rect_colors = [self.BLACK, self.BLACK]
         self.targets = [Target(True)]
         self.game_points = 0
         self.font_points = pygame.font.SysFont("monospace", 50)
@@ -56,6 +60,10 @@ class Main:
                         self.set_offset_multiplicator(True)
                     if event.key == pygame.K_LEFT:
                         self.set_offset_multiplicator(False)
+                    if event.key == pygame.K_UP:
+                        self.set_y_offset(True)
+                    if event.key == pygame.K_DOWN:
+                        self.set_y_offset(False)
 
             for t in self.targets:
                 t.call_timer()
@@ -66,6 +74,7 @@ class Main:
 
             self.draw_field()
             self.draw_left_right_rects()
+            self.draw_up_down_rects()
             self.draw_targets()
             self.draw_game_points()
             self.isometric()
@@ -74,15 +83,20 @@ class Main:
                 self.zoom -= self.zoom_speed
                 if self.x_offset != 1:
                     self.offset += 1
+                if self.y_offset_set != 1:
+                    self.y_offset += 1
             if not zoom_out:
                 self.zoom += self.zoom_speed
                 if self.x_offset != 1:
                     self.offset -= 1
+                if self.y_offset_set != 1:
+                    self.y_offset -= 1
             if self.zoom == 50:
                 zoom_out = False
                 self.check_for_hit()
             if self.zoom == 350:
                 self.x_offset = self.offset_multiplicator
+                self.y_offset_set = self.y_offset_multi
                 zoom_out = True
 
             pygame.display.flip()
@@ -147,7 +161,7 @@ class Main:
 
             projected_two_d = np.dot(self.projection, rotated_two_d)
             x = int(projected_two_d[0][0] * self.zoom) + (self.middle_point[0] + (self.offset * self.x_offset))
-            y = int(projected_two_d[1][0] * self.zoom) + self.middle_point[1]
+            y = int(projected_two_d[1][0] * self.zoom) + (self.middle_point[1] + self.y_offset * self.y_offset_set)
             self.projected_points[i] = [x, y]
             i += 1
         
@@ -162,7 +176,7 @@ class Main:
         
     def draw_left_right_rects(self):
         left = self.screen_width / 2 + 150
-        top = self.screen_height - 100
+        top = self.screen_height - 150
         for c in self.input_rects_colors:
             pygame.draw.rect(self.screen, c, (left, top, 100, 50))
             left -= 150
@@ -171,6 +185,16 @@ class Main:
         for i in range(4):
             pygame.draw.rect(self.screen, self.WHITE, (left, top, 100, 50), 5)
             left -= 150
+
+    def draw_up_down_rects(self):
+        center = self.screen_width / 2 - 75
+        top = self.screen_height
+        pygame.draw.rect(self.screen, self.y_rect_colors[0], (center, top-225, 100, 50))
+        pygame.draw.rect(self.screen, self.WHITE, (center, top-225, 100, 50), 5)
+        pygame.draw.rect(self.screen, self.y_rect_colors[1], (center, top-75, 100, 50))
+        pygame.draw.rect(self.screen, self.WHITE, (center, top-75, 100, 50), 5)
+
+
 
     def fill_input_colors(self):
         c = [self.BLACK, self.BLACK, self.BLACK, self.BLACK]
@@ -238,7 +262,7 @@ class Main:
         i = 0
         hit = False
         for t in self.targets:
-            if (((self.middle_point[0] + (self.offset * self.x_offset)) - t.get_position()[0])**2 + (self.middle_point[1] - t.get_position()[1])**2) < 60**2:
+            if (((self.middle_point[0] + (self.offset * self.x_offset)) - t.get_position()[0])**2 + ((self.middle_point[1] + (self.y_offset * self.y_offset_set))- t.get_position()[1])**2) < 60**2:
                 self.targets.pop(i)
                 hit = True
                 self.game_points += 1
@@ -250,5 +274,26 @@ class Main:
     def draw_game_points(self):
         label = self.font_points.render(str(self.game_points), 1, (255,255,255))
         self.screen.blit(label, (self.screen_width / 2, 30))
-              
+
+    def set_y_offset(self, up: bool):
+        if up and self.y_offset_multi == 1:
+            self.y_offset_multi = -1.5
+        elif up and self.y_offset_multi == 1.5:
+            self.y_offset_multi = 1
+        elif not up and self.y_offset_multi == -1.5:
+            self.y_offset_multi = 1
+        elif not up and self.y_offset_multi == 1:
+            self.y_offset_multi = 1.5
+
+        match self.y_offset_multi:
+            case 1:
+                self.y_rect_colors[0] = self.BLACK
+                self.y_rect_colors[1] = self.BLACK
+            case 1.5:
+                self.y_rect_colors[0] = self.BLACK
+                self.y_rect_colors[1] = self.WHITE
+            case -1.5:
+                self.y_rect_colors[0] = self.WHITE
+                self.y_rect_colors[1] = self.BLACK
+
 Main()
