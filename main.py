@@ -277,22 +277,22 @@ class Main:
 
     def set_y_offset(self, up: bool):
         if up and self.y_offset_multi == 1:
-            self.y_offset_multi = -1.5
-        elif up and self.y_offset_multi == 1.5:
+            self.y_offset_multi = -1.3
+        elif up and self.y_offset_multi == 1.3:
             self.y_offset_multi = 1
-        elif not up and self.y_offset_multi == -1.5:
+        elif not up and self.y_offset_multi == -1.3:
             self.y_offset_multi = 1
         elif not up and self.y_offset_multi == 1:
-            self.y_offset_multi = 1.5
+            self.y_offset_multi = 1.3
 
         match self.y_offset_multi:
             case 1:
                 self.y_rect_colors[0] = self.BLACK
                 self.y_rect_colors[1] = self.BLACK
-            case 1.5:
+            case 1.3:
                 self.y_rect_colors[0] = self.BLACK
                 self.y_rect_colors[1] = self.WHITE
-            case -1.5:
+            case -1.3:
                 self.y_rect_colors[0] = self.WHITE
                 self.y_rect_colors[1] = self.BLACK
 
